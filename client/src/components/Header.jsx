@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-// import {Navigate} from 'react-router-dom'
+import { UserContext } from "../UserContext"
 
 const Header = () => {
 
-    const [username, setUsername] = useState(null);
+    const {setUserInfo, userInfo} = useContext(UserContext);
 
     useEffect(() => {
         fetch('http://localhost:3000/profile', {
             credentials: 'include'
         }).then(res => {
-            res.json().then(userInfo => setUsername(userInfo.username));
+            res.json().then(usrInfo => setUserInfo(usrInfo));
         })
     }, [])
 
@@ -18,8 +18,10 @@ const Header = () => {
         fetch('http://localhost:3000/logout', {
             credentials: 'include',
             method: 'post'
-        }).then(() => setUsername(null));
+        }).then(() => setUserInfo(null));
     }
+
+    const username = userInfo?.username;
 
     return (
         <>
