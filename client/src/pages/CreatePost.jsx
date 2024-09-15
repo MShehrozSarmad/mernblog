@@ -37,6 +37,7 @@ const CreatePost = () => {
         console.log(data);
         e.preventDefault()
         const res = await fetch('http://localhost:3000/createpost', {
+            credentials: 'include',
             method:'post',
             body: data
         })

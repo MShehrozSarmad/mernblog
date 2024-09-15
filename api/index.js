@@ -31,6 +31,7 @@ const secret = "7834cby5in283b7yunxdhe23ynxrb789823";
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static(__dirname + '/uploads'));
 
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
@@ -83,18 +84,29 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/createpost", uploadMiddleware.single("file"), async (req, res) => {
-  const {originalname, path} = req.file
+  const {originalname, path: filePath} = req.file
   const parts = originalname.split('.')
   const ext = parts[parts.length - 1]
-  const newPath = path + '.' + ext
-  fs.renameSync(path, newPath)
+  const newPath = filePath + '.' + ext
+  fs.renameSync(filePath, newPath)
+
+  const relativePath = path.relative(__dirname, newPath).replace(/\\/g, '/')
 
   const {title, summary, content} = req.body
-  const post = await postModel.create({title, summary, content, cover: newPath})
-  
-  res.status(200).json(post)
+  const { token } = req.cookies;
 
+  jwt.verify(token, secret, {}, async (err, info) => {
+    if (err) throw err;
+    const post = await postModel.create({title, summary, content, cover: relativePath, author: info.id})
+    res.status(200).json(post)
+  });
 });
+
+app.get('/posts', async (req, res) => {
+  const posts = await postModel.find().populate('author', ['username']).sort({createdAt: -1}).limit(20);
+  res.status(200).json(posts);
+})
+
 
 try {
   mongoose
