@@ -1,4 +1,4 @@
-import express from "express";
+import express, { json } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import userModel from "./models/users.model.js";
@@ -107,6 +107,40 @@ app.get('/posts', async (req, res) => {
   res.status(200).json(posts);
 })
 
+app.get('/post/:id', async (req, res) => {
+  const id = req.params.id;
+  const postDoc = await postModel.findById({_id: id}).populate('author', ['username']);
+  res.status(200).json(postDoc);
+})
+
+app.put('/post', uploadMiddleware.single('file'), async (req, res) => {
+  let newPath = null;
+  const {token} = req.cookies;
+  const {id, title, summary, content} = req.body
+  if(req.file){
+    const {originalname, path: filePath} = req.file
+    const parts = originalname.split('.')
+    const ext = parts[parts.length - 1]
+    newPath = filePath + '.' + ext
+    fs.renameSync(filePath, newPath)
+  }
+  jwt.verify(token, secret, {}, async (err, info) => {
+    if (err) throw err;
+    // const post = await postModel.create({title, summary, content, cover: relativePath, author: info.id});
+    const postDoc = await postModel.findById(id);
+    const isAuthor = postDoc.author == info.id;
+    
+    if(!isAuthor){
+      res.status(400).send('You are not authorized to perform this action!')
+    }
+
+    const relativePath = newPath ? path.relative(__dirname, newPath).replace(/\\/g, '/') : postDoc.cover;
+    // newPath ? newPath : postDoc.cover
+    const updatedPost = await postDoc.updateOne({title, summary, content, cover: relativePath})
+    res.status(200).json(updatedPost);
+
+  });
+})
 
 try {
   mongoose

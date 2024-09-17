@@ -1,23 +1,6 @@
 import { useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import {Navigate} from 'react-router-dom';
-
-const modules = {
-    toolbar: [
-        [{ 'header': [1, 2, false] }],
-        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-        ['link', 'image'],
-        ['clean']
-    ],
-}
-const formats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'bullet', 'indent',
-    'link', 'image'
-]
+import Editor from '../components/Editor';
 
 const CreatePost = () => {
 
@@ -68,7 +51,8 @@ const CreatePost = () => {
             <div className="form-group">
                 <label htmlFor="content">Content</label>
                 {/* id="content" name="content"  */}
-                <ReactQuill modules={modules} formats={formats} value={content} onChange={newContent => setContent(newContent)}/>
+                {/* <ReactQuill modules={modules} formats={formats} value={content} onChange={newContent => setContent(newContent)}/> */}
+                <Editor value={content} onChange={setContent} />
             </div>
             <button type="submit">Create Post</button>
         </form>
